@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js" 
+}
+
+datasource db {
+  provider = "postgresql"
+  // NOTICE: The URL is gone!
+}
+
+model Category {
+  id       Int           @id @default(autoincrement())
+  name     String
+  children SubCategory[]
+}
+
+model SubCategory {
+  id         Int      @id @default(autoincrement())
+  name       String
+  count      Int      @default(0)
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
