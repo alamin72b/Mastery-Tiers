@@ -1,4 +1,4 @@
-## Architecture Decision Record (ADR)
+# Architecture Decision Record (ADR)
 
 **ADR 002: Implementation of Nested Sub-Category API**
 
@@ -14,46 +14,40 @@
 
 ## Enterprise Technical Specification
 
-**Project:** Mastery Tiers | **Feature:** Sub-Category Management
+**Project:** Mastery Tiers | **Feature:** Sub-Category Management (CRUD)
 
 ### 1. Executive Summary
 
-This feature enables users to break down broad "Mastery Tiers" categories into granular "Sub-Categories." It leverages the existing NestJS validation pipeline and Prisma's relational mapping to ensure data integrity and a standardized response format.
+This feature enables users to create, update, and delete granular "Sub-Categories" nested within parent Categories. It leverages the NestJS validation pipeline, Prisma's relational mapping, and `@nestjs/mapped-types` to ensure data integrity across the full lifecycle of a sub-category.
 
 ### 2. Architectural Design
 
-The implementation follows a strict Layered Architecture:
+The implementation follows a strict **Layered Architecture**:
 
-* **Transport Layer:** NestJS Controller captures `:categoryId` via URL parameters.
-* **Validation Layer:** `CreateSubCategoryDto` inherits from `CreateCategoryDto` to enforce dry-run validation rules.
-* **Domain Layer:** `SubCategoriesService` handles the business logic of connecting entities.
-* **Persistence Layer:** Prisma ORM executes a relational `connect` query in PostgreSQL.
+* **Transport Layer:** NestJS Controller captures `:categoryId` and `:id` via URL parameters for scoped requests.
+* **Validation Layer:** * `CreateSubCategoryDto` inherits from `CreateCategoryDto`.
+* `UpdateSubCategoryDto` utilizes `PartialType` to allow optional field updates.
+
+
+* **Domain Layer:** `SubCategoriesService` handles the business logic of connecting entities and executing updates/deletions.
+* **Persistence Layer:** Prisma ORM executes relational queries (connect, update, delete) in PostgreSQL.
 
 ### 3. Data Contracts (API Interface)
 
-**Endpoint:** `POST /categories/:categoryId/subcategories`
-
-**Request Body (JSON):**
-
-```json
-{
-  "name": "string (min: 3, max: 50)"
-}
-
-```
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| **POST** | `/categories/:categoryId/subcategories` | Create a new sub-category |
+| **PATCH** | `/categories/:categoryId/subcategories/:id` | Update an existing sub-category |
+| **DELETE** | `/categories/:categoryId/subcategories/:id` | Remove a sub-category |
 
 **Response Wrapper (Global Interceptor):**
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `statusCode` | Number | HTTP success/error code |
-| `data` | Object | The created sub-category object |
-| `message` | String | (Optional) Error detail |
+Standardized envelope applied to all successful responses: `{ "statusCode": 201/200, "data": { ... } }`.
 
 ---
 
 ### 4. Deployment Standard Operating Procedures (SOP)
 
-1. **Dependency Audit:** Run `bun install` to ensure `@nestjs/mapped-types` and `class-validator` are present.
-2. **Schema Migration:** Verify `prisma/schema.prisma` contains the `SubCategory` model with the `category` relation.
-3. **Database Sync:** Run `bunx prisma migrate dev` if the schema was updated.
-4. **Verification:** Execute the `curl` test provided in the previous step.
+1. **Dependency Audit:** Ensure `class-validator`, `class-transformer`, and `@nestjs/mapped-types` are in `package.json`.
+2. **Schema Migration:** Verify `SubCategory` model exists in `schema.prisma`.
+3. **Database Sync:** Run `bunx prisma migrate dev` for any schema changes.
+4. **Verification:** Execute `curl -X PATCH` and `curl -X DELETE` against the nested endpoints.
