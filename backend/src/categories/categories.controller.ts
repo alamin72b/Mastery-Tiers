@@ -8,7 +8,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
-
+import { CreateCategoryDto } from './dto/create-category.dto';
 @Controller('categories')
 export class CategoriesController {
   // We inject the service (the brain) into the controller (the door)
@@ -22,8 +22,8 @@ export class CategoriesController {
 
   // POST http://localhost:3000/categories
   @Post()
-  async create(@Body('name') name: string) {
-    return this.categoriesService.createCategory(name);
+  async create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.createCategory(createCategoryDto.name);
   }
 
   // POST http://localhost:3000/categories/:id/sub
