@@ -4,12 +4,20 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // NOTICE: The URL is gone!
+  
 }
-
+model User {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  name       String?
+  googleId   String     @unique
+  categories Category[] // Link to categories
+}
 model Category {
   id       Int           @id @default(autoincrement())
   name     String
+  userId        Int           // The owner of this category
+  user          User          @relation(fields: [userId], references: [id])
   children SubCategory[]
 }
 

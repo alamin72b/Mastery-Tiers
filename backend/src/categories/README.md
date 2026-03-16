@@ -1,53 +1,50 @@
-### Enterprise Technical Specification: Mastery Tiers API
+### Enterprise Technical Specification: Mastery Tiers API (V2)
 
 **1. Executive Summary**
-The Mastery Tiers API provides a robust backend architecture for tracking hierarchical skill progression. It allows clients to create top-level categories, nest sub-categories (skills) beneath them, and dynamically calculate a user's overall "Mastery Tier" based on their lowest completed sub-skill. Built on NestJS and Prisma 7, the system ensures type-safe database interactions and enforces a globally standardized HTTP response structure to streamline frontend consumption.
+The Mastery Tiers API provides a robust backend architecture for tracking hierarchical skill progression. It allows for full **CRUD (Create, Read, Update, Delete)** operations on Categories and nested Sub-categories. Built on NestJS and Prisma 7, the system ensures type-safe database interactions and enforces a globally standardized HTTP response structure.
 
 **2. Architectural Design**
-The feature follows a strict three-tier architecture:
 
-* **Routing Layer (Controller):** Handles incoming HTTP requests and enforces parameter typing (e.g., `ParseIntPipe` for IDs).
-* **Business Logic Layer (Service):** Calculates the `masteryTier` dynamically using a `Math.min()` aggregation across nested sub-categories, ensuring the parent tier accurately reflects the minimum threshold of all child components.
-* **Data Access Layer (PrismaService):** Interfaces with a serverless PostgreSQL instance (Neon). It utilizes Prisma 7's standard client configuration, bypassing edge-specific driver adapters to prioritize stability in a standard Node.js deployment environment.
-* **Middleware (Global Wrappers):** A generic `TransformInterceptor` and `HttpExceptionFilter` wrap all outgoing traffic, guaranteeing a uniform data shape regardless of success or failure.
+* **Routing Layer:** Utilizes **Nested RESTful routing** (`/categories/:id/subcategories`) to maintain clear ownership of resources.
+* **Validation Layer:** Implements `PartialType` for Update DTOs, allowing clients to patch only the fields they need while maintaining strict validation rules.
+* **Business Logic Layer:** * **Computed Tiers:** Calculates `masteryTier` dynamically using a `Math.min()` aggregation.
+* **Relational Integrity:** Ensures sub-categories are correctly connected to parents via Prisma's `connect` API.
 
-**3. Data Contracts**
-All API responses conform to a strict interface, eliminating the need for frontend payload-guessing.
+
+* **Persistence Layer:** PostgreSQL via Neon, utilizing **Cascade Deletion** logic—removing a Category automatically purges all child Sub-categories to prevent "orphaned" data.
+
+**3. Data Contracts (Updated)**
+All endpoints now return the standardized envelope:
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `success` | `boolean` | Indicates if the operation completed without exceptions. |
-| `statusCode` | `number` | The HTTP status code (e.g., 200, 201, 500). |
-| `message` | `string` | Human-readable outcome description. |
-| `data` | `T | null` | The requested payload (omitted or null on failure). |
-| `error` | `string[]` | Array of error messages (omitted on success). |
-| `timestamp` | `string` | ISO 8601 timestamp of the transaction. |
-| `path` | `string` | The API endpoint that was accessed. |
+| `success` | `boolean` | True for 2xx codes, false otherwise. |
+| `data` | `T | null` | The updated/deleted record or the computed tier object. |
+| `path` | `string` | The requested endpoint (useful for debugging). |
 
 **4. Deployment Standard Operating Procedures (SOP)**
 
-1. **Environment Configuration:** Ensure `.env` contains a valid, pooled PostgreSQL connection string (`DATABASE_URL`).
-2. **Schema Synchronization:** Run `bunx prisma db push` (or `migrate deploy` for production) to align the Neon database schema.
-3. **Client Generation:** Run `bunx prisma generate` to build the TypeScript types into `node_modules`.
-4. **Application Build:** Execute `bun run build` to compile the NestJS application.
-5. **Service Startup:** Initialize the production server using `bun run start:prod`.
+1. **Dependency Check:** Run `bun install` to ensure `@nestjs/mapped-types` is available for `PartialType` support.
+2. **Schema Check:** Verify `onDelete: Cascade` is set on the `SubCategory -> Category` relation in `prisma.schema`.
+3. **Migration:** Run `bunx prisma migrate dev` to commit the cascading deletion logic to PostgreSQL.
 
 ---
 
 ### Architecture Decision Record (ADR)
 
-**Title:** Implementation of Computed Tiers and Standardized Interceptors
+**ADR 005: Implementation of CRUD Operations and Cascade Deletion**
 **Status:** Accepted
 
 **Context:**
-The Next.js frontend requires a predictable data structure to render UI components effectively, particularly when displaying aggregated category scores and handling API errors. Furthermore, persisting a `masteryTier` directly in the database introduces the risk of data staleness if sub-categories are modified or deleted.
+As the Mastery Tiers system expands, users need to rename or remove skills. We must ensure that updating a name doesn't require resending the entire object and that deleting a category doesn't leave "ghost" sub-categories in the database.
 
 **Decision:**
 
-1. **Computed Properties:** We opted to calculate the `masteryTier` dynamically in the `CategoriesService` at request time, rather than storing it as a database column.
-2. **Global Interceptors:** We implemented a `TransformInterceptor<T>` and an `HttpExceptionFilter` at the application bootstrap level (`main.ts`) to intercept all incoming requests and outgoing responses.
+1. **Partial Updates:** Use `@nestjs/mapped-types` to create `Update` DTOs.
+2. **Cascade Deletion:** Configure the database schema so that deleting a Category triggers a cascade delete of its Sub-categories.
+3. **Nested Management:** Manage sub-categories via nested paths to reinforce the parent-child constraint.
 
 **Consequences:**
 
-* **Positive:** The Next.js frontend can universally destructure `const { success, data, error } = await api.get(...)`. Database normalization is maintained with zero risk of desynchronized tier counts.
-* **Negative/Mitigation:** Dynamic calculation slightly increases CPU load on `GET` requests, but the impact is negligible given the indexed foreign keys in PostgreSQL.
+* **Positive:** Minimal bandwidth usage for updates. Zero manual cleanup required for sub-categories.
+* **Negative/Mitigation:** Risk of accidental data loss. *Mitigation:* Frontend must implement a "Danger Zone" confirmation dialog for Category deletion.
