@@ -25,11 +25,16 @@ export class SubCategoriesService {
     return `This action returns a #${id} subCategory`;
   }
 
-  update(id: number, updateSubCategoryDto: UpdateSubCategoryDto) {
-    return `This action updates a #${id} subCategory`;
+  async update(id: number, updateSubCategoryDto: UpdateSubCategoryDto) {
+    return this.prisma.subCategory.update({
+      where: { id },
+      data: updateSubCategoryDto,
+    });
   }
-ss
-  remove(id: number) {
-    return `This action removes a #${id} subCategory`;
+
+  async remove(id: number) {
+    return this.prisma.subCategory.delete({
+      where: { id },
+    });
   }
 }
