@@ -1,7 +1,3 @@
-That `curl` output is the exact blueprint of a production-ready API. Seeing the data wrapped cleanly with the status code, timestamp, and path is the payoff for all that strict TypeScript configuration.
-
-Here is the professional documentation and commit message for the Mastery Tiers backend feature you just built.
-
 ### Enterprise Technical Specification: Mastery Tiers API
 
 **1. Executive Summary**
