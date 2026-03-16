@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { UpdateCategoryDto } from './dto/update-category.dto';
 @Injectable()
 export class CategoriesService {
   // Inject the clean, global database connection
@@ -81,5 +81,18 @@ export class CategoriesService {
         'Failed to increment sub-category',
       );
     }
+  }
+
+  async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
+    return this.prisma.category.update({
+      where: { id },
+      data: updateCategoryDto,
+    });
+  }
+
+  async removeCategory(id: number) {
+    return this.prisma.category.delete({
+      where: { id },
+    });
   }
 }

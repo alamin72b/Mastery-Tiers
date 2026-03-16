@@ -5,10 +5,12 @@ import {
   Body,
   Param,
   Patch,
+  Delete,
   ParseIntPipe,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 @Controller('categories')
 export class CategoriesController {
   // We inject the service (the brain) into the controller (the door)
@@ -35,9 +37,16 @@ export class CategoriesController {
     return this.categoriesService.createSubCategory(name, id);
   }
 
-  // PATCH http://localhost:3000/categories/sub/:id/increment
-  @Patch('sub/:id/increment')
-  async increment(@Param('id', ParseIntPipe) id: number) {
-    return this.categoriesService.incrementSubCategory(id);
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
+    return this.categoriesService.updateCategory(+id, updateCategoryDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.categoriesService.removeCategory(+id);
   }
 }
