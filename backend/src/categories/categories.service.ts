@@ -29,13 +29,27 @@ export class CategoriesService {
     }
   }
 
+  // async createCategory(name: string) {
+  //   try {
+  //     return await this.prisma.category.create({
+  //       data: { name },
+  //     });
+  //   } catch (error) {
+  //     console.error(error); // This will print the REAL error to your terminal
+  //     throw new InternalServerErrorException('Failed to create category');
+  //   }
+  // }
+
   async createCategory(name: string) {
     try {
       return await this.prisma.category.create({
-        data: { name },
+        data: {
+          name,
+          userId: 1, // <-- TEMPORARY BYPASS: Satisfies Prisma until JWT is ready
+        },
       });
     } catch (error) {
-      console.error(error); // This will print the REAL error to your terminal
+      console.error(error);
       throw new InternalServerErrorException('Failed to create category');
     }
   }
