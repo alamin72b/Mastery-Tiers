@@ -1,12 +1,22 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { jwtDecode } from 'jwt-decode'; // You need this to read the Google data
+
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  picture: string;
+}
 
 interface AuthState {
   token: string | null;
+  user: User | null; // This fixes the TS(2339) error
   isAuthenticated: boolean;
 }
 
 const initialState: AuthState = {
   token: null,
+  user: null,
   isAuthenticated: false,
 };
 
@@ -17,17 +27,25 @@ const authSlice = createSlice({
     setCredentials: (state, action: PayloadAction<{ token: string }>) => {
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      // Save to local storage so they stay logged in after a refresh
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('mastery_token', action.payload.token);
+
+      // Extract Google Info from the token
+      try {
+        const decoded: any = jwtDecode(action.payload.token);
+        state.user = {
+          id: decoded.sub,
+          email: decoded.email,
+          name: decoded.name || 'User', // Google provides this
+          picture: decoded.picture || '', // Google provides this
+        };
+      } catch (error) {
+        console.error('Failed to decode token', error);
       }
     },
     logout: (state) => {
       state.token = null;
+      state.user = null;
       state.isAuthenticated = false;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('mastery_token');
-      }
+      localStorage.removeItem('token');
     },
   },
 });
