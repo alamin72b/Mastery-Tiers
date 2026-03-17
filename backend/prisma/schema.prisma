@@ -10,6 +10,7 @@ model User {
   id         Int        @id @default(autoincrement())
   email      String     @unique
   name       String?
+  picture  String?
   googleId   String     @unique
   categories Category[] // Link to categories
 }
