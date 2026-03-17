@@ -10,9 +10,11 @@ export class CategoriesService {
   // Inject the clean, global database connection
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllCategories() {
+  // 1. Fetch only the categories for the logged-in user
+  async getAllCategories(userId: number) {
     try {
       const categories = await this.prisma.category.findMany({
+        where: { userId }, // <-- Filter by the owner!
         include: { children: true },
       });
 
@@ -29,23 +31,13 @@ export class CategoriesService {
     }
   }
 
-  // async createCategory(name: string) {
-  //   try {
-  //     return await this.prisma.category.create({
-  //       data: { name },
-  //     });
-  //   } catch (error) {
-  //     console.error(error); // This will print the REAL error to your terminal
-  //     throw new InternalServerErrorException('Failed to create category');
-  //   }
-  // }
-
-  async createCategory(name: string) {
+  // 2. Add userId to the creation process
+  async createCategory(name: string, userId: number) {
     try {
       return await this.prisma.category.create({
         data: {
           name,
-          userId: 1, // <-- TEMPORARY BYPASS: Satisfies Prisma until JWT is ready
+          userId, // <-- Tell Prisma who owns this category
         },
       });
     } catch (error) {
@@ -53,6 +45,20 @@ export class CategoriesService {
       throw new InternalServerErrorException('Failed to create category');
     }
   }
+
+  // async createCategory(name: string) {
+  //   try {
+  //     return await this.prisma.category.create({
+  //       data: {
+  //         name,
+  //         userId: 1, // <-- TEMPORARY BYPASS: Satisfies Prisma until JWT is ready
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new InternalServerErrorException('Failed to create category');
+  //   }
+  // }
 
   async createSubCategory(name: string, categoryId: number) {
     try {
