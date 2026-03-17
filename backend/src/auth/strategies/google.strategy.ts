@@ -1,7 +1,9 @@
+// backend/src/auth/google.strategy.ts
+
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service'; // Ensure path is correct
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -10,7 +12,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: process.env.GOOGLE_CALLBACK_URL!,
-      scope: ['email', 'profile'], // Correctly requesting profile data
+      scope: ['email', 'profile'],
     });
   }
 
@@ -24,27 +26,28 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     // 1. Extract values safely
     const userEmail = emails && emails.length > 0 ? emails[0].value : '';
-    const userName = name?.givenName || displayName || '';
+    const userName = name?.givenName || displayName || 'User';
 
-    // 2. Extract the profile picture URL
+    // 2. Extract the profile picture URL safely
     const userPicture = photos && photos.length > 0 ? photos[0].value : '';
 
-    // 3. Update Prisma to store the picture
+    // 3. Force the database to sync with this Google data
     const user = await this.prisma.user.upsert({
       where: { googleId: id },
       update: {
         name: userName,
         email: userEmail,
-        picture: userPicture, // Make sure 'picture' exists in your Prisma schema
+        picture: userPicture,
       },
       create: {
         googleId: id,
         email: userEmail,
         name: userName,
-        picture: userPicture, // Make sure 'picture' exists in your Prisma schema
+        picture: userPicture,
       },
     });
 
+    // 4. Pass the verified database user to the AuthController
     done(null, user);
   }
 }

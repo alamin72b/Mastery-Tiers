@@ -1,3 +1,5 @@
+// backend/src/categories/categories.controller.ts
+
 import {
   Controller,
   Get,
@@ -9,6 +11,7 @@ import {
   ParseIntPipe,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
@@ -21,11 +24,25 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  // Helper method to safely extract the User ID
+  private extractUserId(req: Request): number {
+    const user = req.user as any;
+
+    // Check all common JWT payload shapes
+    const userId = user?.sub || user?.id || user?.userId;
+
+    if (!userId) {
+      console.error('JWT Error: No User ID found in token payload.', user);
+      throw new UnauthorizedException('Invalid token: User ID is missing.');
+    }
+
+    return Number(userId);
+  }
+
   @Get()
   async getAll(@Req() req: Request) {
-    // Safely cast the user object to satisfy strict TypeScript rules
-    const user = req.user as { sub: number };
-    return this.categoriesService.getAllCategories(user.sub);
+    const userId = this.extractUserId(req);
+    return this.categoriesService.getAllCategories(userId);
   }
 
   @Post()
@@ -33,11 +50,10 @@ export class CategoriesController {
     @Body() createCategoryDto: CreateCategoryDto,
     @Req() req: Request,
   ) {
-    // Safely cast the user object here as well
-    const user = req.user as { sub: number };
+    const userId = this.extractUserId(req);
     return this.categoriesService.createCategory(
       createCategoryDto.name,
-      user.sub,
+      userId,
     );
   }
 
