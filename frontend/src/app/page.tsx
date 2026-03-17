@@ -4,7 +4,8 @@ import Link from 'next/link';
 
 export default function HomePage() {
   // Use your Render Backend URL
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mastery-tiers.onrender.com';
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_API_URL || 'https://mastery-tiers.onrender.com';
 
   const handleLogin = () => {
     // This triggers the Google OAuth flow we set up in the backend
@@ -32,7 +33,9 @@ export default function HomePage() {
           Visualize Your <span className="text-blue-600">Growth</span>
         </h1>
         <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          MasteryTiers helps you break down complex skills into manageable sub-categories and track your progress with a beautiful, tiered interface.
+          MasteryTiers helps you break down complex skills into manageable
+          sub-categories and track your progress with a beautiful, tiered
+          interface.
         </p>
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <button
@@ -54,8 +57,12 @@ export default function HomePage() {
       <section id="features" className="bg-gray-50 py-24 px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Everything you need to master anything</h2>
-            <p className="text-gray-500">Simple, powerful, and effective skill tracking.</p>
+            <h2 className="text-3xl font-bold mb-4">
+              Everything you need to master anything
+            </h2>
+            <p className="text-gray-500">
+              Simple, powerful, and effective skill tracking.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -66,7 +73,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold mb-3">Custom Categories</h3>
               <p className="text-gray-500 leading-relaxed">
-                Organize your learning path by creating main categories for different domains like Programming, Gardening, or Languages.
+                Organize your learning path by creating main categories for
+                different domains like Programming, Gardening, or Languages.
               </p>
             </div>
 
@@ -77,7 +85,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold mb-3">Nested Sub-categories</h3>
               <p className="text-gray-500 leading-relaxed">
-                Break categories down into specific skills. Track "Tomatoes" inside Gardening or "React" inside Programming.
+                Break categories down into specific skills. Track "Tomatoes"
+                inside Gardening or "React" inside Programming.
               </p>
             </div>
 
@@ -88,7 +97,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold mb-3">Progress Tracking</h3>
               <p className="text-gray-500 leading-relaxed">
-                Increment your counts as you practice. Watch your "Mastery Tier" grow based on your consistent effort.
+                Increment your counts as you practice. Watch your "Mastery Tier"
+                grow based on your consistent effort.
               </p>
             </div>
           </div>
@@ -97,7 +107,8 @@ export default function HomePage() {
 
       {/* --- Footer --- */}
       <footer className="py-12 px-8 border-t border-gray-100 text-center text-gray-400 text-sm">
-        &copy; {new Date().getFullYear()} MasteryTiers. Built with Next.js & NestJS.
+        &copy; {new Date().getFullYear()} MasteryTiers. Built with Next.js &
+        NestJS.
       </footer>
     </div>
   );
