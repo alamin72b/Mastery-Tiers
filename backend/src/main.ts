@@ -10,7 +10,11 @@ async function bootstrap() {
 
   // 1. ADD THIS BLOCK: Tell the backend to trust your frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Allowed frontends
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://mastery-tiers.vercel.app',
+    ], // Allowed frontends
     credentials: true,
   });
 
