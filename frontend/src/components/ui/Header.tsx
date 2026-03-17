@@ -40,7 +40,11 @@ export default function Header() {
               </div>
               {/* 2. Use the optimized Image component */}
               <Image
-                src={user.picture || `https://ui-avatars.com/api/?name=${user.name}`}
+                
+                src={
+                  user?.picture ||
+                  `https://ui-avatars.com/api/?name=${user?.name || 'User'}`
+                }
                 alt="Profile"
                 width={40} // Matches w-10
                 height={40} // Matches h-10
