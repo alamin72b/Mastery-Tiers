@@ -27,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "jwt-decode": "^4.0.0",
     "typescript": "^5"
   },
   "ignoreScripts": [
