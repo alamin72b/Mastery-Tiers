@@ -1,17 +1,25 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { jwtDecode } from 'jwt-decode'; // You need this to read the Google data
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
-  id: number;
-  email: string;
+  id?: number;
   name: string;
-  picture: string;
+  email: string;
+  picture: string; // Ensure this matches what you use in Header
 }
 
 interface AuthState {
   token: string | null;
-  user: User | null; // This fixes the TS(2339) error
+  user: User | null;
   isAuthenticated: boolean;
+}
+
+// Define the shape of the Google JWT payload
+interface GoogleJwtPayload {
+  name: string;
+  email: string;
+  picture: string;
+  sub: string; // Google's unique user ID
 }
 
 const initialState: AuthState = {
@@ -25,20 +33,24 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<{ token: string }>) => {
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-
-      // Extract Google Info from the token
+      const { token } = action.payload;
       try {
-        const decoded: any = jwtDecode(action.payload.token);
+        // 1. Decode the token
+        const decoded = jwtDecode<GoogleJwtPayload>(token);
+
+        // 2. Map Google data to your user state
+        state.token = token;
         state.user = {
-          id: decoded.sub,
+          name: decoded.name,
           email: decoded.email,
-          name: decoded.name || 'User', // Google provides this
-          picture: decoded.picture || '', // Google provides this
+          picture: decoded.picture,
         };
+        state.isAuthenticated = true;
+
+        // Optional: Save to localStorage for persistence
+        localStorage.setItem('token', token);
       } catch (error) {
-        console.error('Failed to decode token', error);
+        console.error('Failed to decode Google token:', error);
       }
     },
     logout: (state) => {
