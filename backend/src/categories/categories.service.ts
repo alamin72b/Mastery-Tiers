@@ -46,20 +46,6 @@ export class CategoriesService {
     }
   }
 
-  // async createCategory(name: string) {
-  //   try {
-  //     return await this.prisma.category.create({
-  //       data: {
-  //         name,
-  //         userId: 1, // <-- TEMPORARY BYPASS: Satisfies Prisma until JWT is ready
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw new InternalServerErrorException('Failed to create category');
-  //   }
-  // }
-
   async createSubCategory(name: string, categoryId: number) {
     try {
       const category = await this.prisma.category.findUnique({
@@ -99,6 +85,33 @@ export class CategoriesService {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException(
         'Failed to increment sub-category',
+      );
+    }
+  }
+
+  // Add this inside CategoriesService
+  async decrementSubCategory(subCategoryId: number) {
+    try {
+      const subCategory = await this.prisma.subCategory.findUnique({
+        where: { id: subCategoryId },
+      });
+
+      if (!subCategory) {
+        throw new NotFoundException(
+          `Sub-category with ID ${subCategoryId} not found`,
+        );
+      }
+
+      // Don't allow negative counts
+      const newCount = Math.max(0, subCategory.count - 1);
+
+      return await this.prisma.subCategory.update({
+        where: { id: subCategoryId },
+        data: { count: newCount },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to decrement sub-category',
       );
     }
   }

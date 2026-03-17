@@ -61,4 +61,14 @@ export class CategoriesController {
   remove(@Param('id') id: string) {
     return this.categoriesService.removeCategory(+id);
   }
+
+  @Patch('sub/:subId/increment')
+  async increment(@Param('subId', ParseIntPipe) subId: number) {
+    return this.categoriesService.incrementSubCategory(subId);
+  }
+
+  @Patch('sub/:subId/decrement')
+  async decrement(@Param('subId', ParseIntPipe) subId: number) {
+    return this.categoriesService.decrementSubCategory(subId);
+  }
 }
