@@ -1,27 +1,30 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request } from 'express';
+import type { Request, Response } from 'express'; // Import Response
+import { AuthService } from './auth.service'; // Import AuthService
 
 @Controller('auth')
 export class AuthController {
-  // 1. Frontend hits this to start the Google login process
+  // Inject the service
+  constructor(private readonly authService: AuthService) {}
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req: Request) {
-    // Passport automatically redirects to the Google Login Page
+    // Passport handles the redirect to Google
   }
 
-  // 2. Google redirects back to this URL after the user clicks "Allow"
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req: Request) {
-    // req.user now contains the user from your database!
+  googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    // 1. Tell TypeScript exactly what 'req.user' looks like to avoid 'any' errors
+    const user = req.user as { id: number; email: string };
 
-    // For now, let's just return the user to see if it works.
-    // Later, we will generate a JWT token here and redirect to your Next.js dashboard.
-    return {
-      message: 'Google Login Successful!',
-      user: req.user,
-    };
+    // 2. Generate the token
+    const token = this.authService.generateJwt(user);
+
+    // 3. Redirect the browser to your Next.js frontend with the token in the URL
+    const frontendUrl = process.env.FRONTEND_URL;
+    return res.redirect(`${frontendUrl}/dashboard?token=${token}`);
   }
 }

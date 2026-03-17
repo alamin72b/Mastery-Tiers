@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt'; // 1. Import JwtService
 
-// 1. Define the exact shape of the incoming user data
 export interface GoogleUserDetails {
   googleId: string;
   email: string;
@@ -11,25 +11,32 @@ export interface GoogleUserDetails {
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  // 2. Inject JwtService into the constructor
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
-  // 2. Replace 'any' with your new strict interface
   async validateGoogleUser(googleUser: GoogleUserDetails) {
-    // Check if user exists
     let user = await this.prisma.user.findUnique({
       where: { googleId: googleUser.googleId },
     });
 
-    // If not, create them in our DB
     if (!user) {
       user = await this.prisma.user.create({
         data: {
           googleId: googleUser.googleId,
           email: googleUser.email,
-          name: `${googleUser.firstName} ${googleUser.lastName}`.trim(), // Added trim() just in case a name is missing
+          name: `${googleUser.firstName} ${googleUser.lastName}`.trim(),
         },
       });
     }
     return user;
+  }
+
+  // 3. New Method: Turn the database user into a JWT
+  generateJwt(user: { id: number; email: string }) {
+    const payload = { sub: user.id, email: user.email };
+    return this.jwtService.sign(payload);
   }
 }
