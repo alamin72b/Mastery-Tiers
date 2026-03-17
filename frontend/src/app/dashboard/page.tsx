@@ -19,7 +19,8 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  // Extract user and isAuthenticated from state
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const {
     items: categories,
     status,
@@ -92,16 +93,27 @@ function DashboardContent() {
     dispatch(decrementCount({ categoryId, subId }));
   };
 
-  if (urlToken || !isAuthenticated) {
+  /**
+   * IMPORTANT: Authentication Guard
+   * We wait for 'user' to be populated so the Header doesn't 
+   * receive 'undefined' for the profile picture/name.
+   */
+  if (urlToken || !isAuthenticated || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-lg text-gray-500 animate-pulse">Authenticating...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-500 font-medium animate-pulse">
+            Syncing profile...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Now safe to render Header - user data is guaranteed */}
       <Header />
 
       <main className="p-8 flex-grow">
@@ -208,7 +220,7 @@ function DashboardContent() {
         </div>
       </main>
 
-      {/* --- Modals with fixed text color --- */}
+      {/* --- Modals with fixed text-gray-900 color --- */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
