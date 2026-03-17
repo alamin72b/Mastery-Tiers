@@ -1,11 +1,10 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request, Response } from 'express'; // Import Response
-import { AuthService } from './auth.service'; // Import AuthService
+import type { Request, Response } from 'express';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-  // Inject the service
   constructor(private readonly authService: AuthService) {}
 
   @Get('google')
@@ -17,13 +16,18 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
-    // 1. Tell TypeScript exactly what 'req.user' looks like to avoid 'any' errors
-    const user = req.user as { id: number; email: string };
+    // 1. Expand the type to include name and picture
+    const user = req.user as {
+      id: number;
+      email: string;
+      name: string;
+      picture: string;
+    };
 
     // 2. Generate the token
     const token = this.authService.generateJwt(user);
 
-    // 3. Redirect the browser to your Next.js frontend with the token in the URL
+    // 3. Redirect the browser to your Next.js frontend with the token
     const frontendUrl = process.env.FRONTEND_URL;
     return res.redirect(`${frontendUrl}/dashboard?token=${token}`);
   }

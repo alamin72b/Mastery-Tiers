@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtService } from '@nestjs/jwt'; // 1. Import JwtService
+import { JwtService } from '@nestjs/jwt';
 
 export interface GoogleUserDetails {
   googleId: string;
@@ -11,7 +11,6 @@ export interface GoogleUserDetails {
 
 @Injectable()
 export class AuthService {
-  // 2. Inject JwtService into the constructor
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -34,9 +33,20 @@ export class AuthService {
     return user;
   }
 
-  // 3. New Method: Turn the database user into a JWT
-  generateJwt(user: { id: number; email: string }) {
-    const payload = { sub: user.id, email: user.email };
+  // 3. Updated Method: Accept and sign the full user object
+  generateJwt(user: {
+    id: number;
+    email: string;
+    name: string;
+    picture: string;
+  }) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+    };
+
     return this.jwtService.sign(payload);
   }
 }
