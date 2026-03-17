@@ -8,6 +8,12 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 1. ADD THIS BLOCK: Tell the backend to trust your frontend
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:3001'], // Allowed frontends
+    credentials: true,
+  });
+
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
@@ -19,7 +25,6 @@ async function bootstrap() {
     }),
   );
 
-  // CHANGED THIS LINE: Listen to the Cloud Provider's port, or default to 3000 locally
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`Backend is running on port ${port}`);
