@@ -1,5 +1,3 @@
-// backend/src/categories/categories.controller.ts
-
 import {
   Controller,
   Get,
@@ -9,54 +7,28 @@ import {
   Patch,
   Delete,
   ParseIntPipe,
-  Req,
-  UseGuards,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import type { Request } from 'express';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-
-@UseGuards(AuthGuard('jwt'))
 @Controller('categories')
 export class CategoriesController {
+  // We inject the service (the brain) into the controller (the door)
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  // Helper method to safely extract the User ID
-  private extractUserId(req: Request): number {
-    const user = req.user as any;
-
-    // Check all common JWT payload shapes
-    const userId = user?.sub || user?.id || user?.userId;
-
-    if (!userId) {
-      console.error('JWT Error: No User ID found in token payload.', user);
-      throw new UnauthorizedException('Invalid token: User ID is missing.');
-    }
-
-    return Number(userId);
-  }
-
+  // GET http://localhost:3000/categories
   @Get()
-  async getAll(@Req() req: Request) {
-    const userId = this.extractUserId(req);
-    return this.categoriesService.getAllCategories(userId);
+  async getAll() {
+    return this.categoriesService.getAllCategories();
   }
 
+  // POST http://localhost:3000/categories
   @Post()
-  async create(
-    @Body() createCategoryDto: CreateCategoryDto,
-    @Req() req: Request,
-  ) {
-    const userId = this.extractUserId(req);
-    return this.categoriesService.createCategory(
-      createCategoryDto.name,
-      userId,
-    );
+  async create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.createCategory(createCategoryDto.name);
   }
 
+  // POST http://localhost:3000/categories/:id/sub
   @Post(':id/sub')
   async createSub(
     @Param('id', ParseIntPipe) id: number,
@@ -76,15 +48,5 @@ export class CategoriesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.categoriesService.removeCategory(+id);
-  }
-
-  @Patch('sub/:subId/increment')
-  async increment(@Param('subId', ParseIntPipe) subId: number) {
-    return this.categoriesService.incrementSubCategory(subId);
-  }
-
-  @Patch('sub/:subId/decrement')
-  async decrement(@Param('subId', ParseIntPipe) subId: number) {
-    return this.categoriesService.decrementSubCategory(subId);
   }
 }

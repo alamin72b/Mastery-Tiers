@@ -1,9 +1,7 @@
-// backend/src/auth/google.strategy.ts
-
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20'; // 1. Added Profile type
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service'; // Ensure path is correct
+import { PrismaService } from '../../prisma/prisma.service'; // 2. Fixed import path
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -19,35 +17,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: Profile,
+    profile: Profile, // 3. Replaced 'any' with 'Profile'
     done: VerifyCallback,
   ): Promise<void> {
-    const { id, name, emails, displayName, photos } = profile;
+    const { id, name, emails, displayName } = profile;
 
-    // 1. Extract values safely
+    // 4. Safely extract values so TypeScript knows they are strictly strings
     const userEmail = emails && emails.length > 0 ? emails[0].value : '';
-    const userName = name?.givenName || displayName || 'User';
+    const userName = name?.givenName || displayName || '';
 
-    // 2. Extract the profile picture URL safely
-    const userPicture = photos && photos.length > 0 ? photos[0].value : '';
-
-    // 3. Force the database to sync with this Google data
     const user = await this.prisma.user.upsert({
       where: { googleId: id },
-      update: {
-        name: userName,
-        email: userEmail,
-        picture: userPicture,
-      },
+      update: { name: userName, email: userEmail },
       create: {
         googleId: id,
         email: userEmail,
         name: userName,
-        picture: userPicture,
       },
     });
 
-    // 4. Pass the verified database user to the AuthController
     done(null, user);
   }
 }

@@ -4,7 +4,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
+
 @Module({
   imports: [
     // 2. Register the JWT Module
@@ -14,6 +14,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, PrismaService, JwtStrategy],
+  providers: [AuthService, GoogleStrategy, PrismaService],
 })
 export class AuthModule {}

@@ -3,34 +3,24 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common'; // 1. Import this
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. ADD THIS BLOCK: Tell the backend to trust your frontend
-  app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://mastery-tiers.vercel.app',
-    ], // Allowed frontends
-    credentials: true,
-  });
-
+  // Apply the global wrappers
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  // 2. Enable Global Validation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
+      whitelist: true, // Strips away any properties not defined in the DTO
+      forbidNonWhitelisted: true, // Throws an error if extra properties are sent
+      transform: true, // Automatically transforms payloads to be objects typed according to their DTO classes
     }),
   );
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Backend is running on port ${port}`);
+  await app.listen(3000);
 }
 bootstrap();
