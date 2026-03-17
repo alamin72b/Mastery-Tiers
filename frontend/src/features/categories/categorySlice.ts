@@ -1,12 +1,14 @@
+// frontend/src/features/categories/categorySlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { 
   fetchCategoriesApi, 
   createCategoryApi, 
   createSubCategoryApi, 
-  incrementSubCategoryApi, // Updated API name
-  decrementSubCategoryApi, // Updated API name
+  incrementSubCategoryApi, 
+  decrementSubCategoryApi, 
   Category 
 } from './categoryApi';
+import { logout } from '../auth/authSlice'; // <-- 1. Import the logout action
 
 interface CategoryState {
   items: Category[];
@@ -60,6 +62,13 @@ const categorySlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // --- THE CRITICAL FIX: Wipe data on logout ---
+      .addCase(logout, (state) => {
+        state.items = [];
+        state.status = 'idle';
+        state.error = null;
+      })
+
       // Fetch Categories Cases
       .addCase(fetchCategories.pending, (state) => { 
         state.status = 'loading'; 
